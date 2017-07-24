@@ -1,11 +1,2 @@
-language: cpp
-compiler:
-  - gcc
-before_script:
-  - mkdir build_
-  - cd build_
-  - cmake ..
-script:
-  - make
-  - cd ../bin
-  - ./Simple
+   only:
+     - master

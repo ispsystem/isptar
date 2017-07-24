@@ -1,2 +1,6 @@
-   only:
-     - master
+language: cpp
+
+compiler:
+
+  - gcc
+  - clang

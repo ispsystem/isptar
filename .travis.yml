@@ -1,10 +1,61 @@
 language: cpp
-
 compiler:
-
-  - gcc
-  - clang
+- gcc
+before_install:
+- export TRAVIS_COMMIT_MSG="$(git log --format=%B --no-merges -n 1)"
+- if [[ "$TRAVIS_COMMIT_MSG" = "$COMMIT_IGNORE_BUILD" ]]; then exit 0 ; fi
+- if [ "$CXX" == "g++" ]; then sudo add-apt-repository -y ppa:ubuntu-toolchain-r/test;
+  fi
+- sudo apt-get update -qq
+- git config --global user.email "$USER_EMAIL"
+- git config --global user.name "$USER_NAME"
+- git config --global push.default simple
+- git checkout $TRAVIS_BRANCH
+install:
+- if [ "$CXX" == "g++" ]; then sudo apt-get install -qq g++-4.8; fi
+- if [ "$CXX" == "g++" ]; then sudo update-alternatives --install /usr/bin/g++ g++
+  /usr/bin/g++-4.8 50; fi
+- wget http://www.biicode.com/downloads/latest/ubuntu64
+- mv ubuntu64 bii-ubuntu64.deb
+- sudo dpkg -i bii-ubuntu64.deb && sudo apt-get -f install
+- rm bii-ubuntu64.deb
+- wget https://s3.amazonaws.com/biibinaries/thirdparty/cmake-3.0.2-Linux-64.tar.gz
+- tar -xzf cmake-3.0.2-Linux-64.tar.gz
+- sudo cp -fR cmake-3.0.2-Linux-64/* /usr
+- rm -rf cmake-3.0.2-Linux-64
+- rm cmake-3.0.2-Linux-64.tar.gz
+- export TRAVIS_CXX=$CXX
+script:
+- cd /tmp
+- bii init -L
+- shopt -s dotglob && mv $TRAVIS_BUILD_DIR/* ./
+- if [ "$CXX" == "clang++" ]; then export CXX="clang++" && bii build; fi
+- if [ "$CXX" == "g++" ];     then export CXX="g++"     && bii build; fi
+##################### CHANGE WITH YOUR CUSTOM CHECKS OR TEST EXECUTION ##################
+- ls ./bin/lasote_docker_client_example_main
+#########################################################################################
+after_success:
+- bii user $USER -p $BII_PASSWORD
+- if [[ -n $TRAVIS_TAG ]]; then bii publish -r --tag STABLE --versiontag $TRAVIS_TAG
+  || echo "Ignored publish output..."; fi
+- if [[ -z $TRAVIS_TAG ]]; then bii publish -r || echo "Ignored publish output...";
+  fi
+# If there are changes, commit them
+- git config credential.helper "store --file=.git/credentials" 
+- echo "https://${GH_TOKEN}:@github.com" > .git/credentials
+- git add -A .
+- git commit -m "$COMMIT_IGNORE_BUILD" 
+- git remote -v
+- git remote set-url origin https://github.com/$TRAVIS_REPO_SLUG.git 
+- git push
 env:
-  - DB=postgres
-  - SH=bash
-  - PACKAGE_VERSION="1.0.*"
+  global:
+  - USER_EMAIL=lasote@gmail.com
+  - USER_NAME="Luis Martinez de Bartolome"
+  - COMMIT_IGNORE_BUILD="Promoted version.***travis***"
+  - BLOCK_NAME=docker_client
+  - USER=lasote
+  # BII_PASSWORD: Biicode USER's password. > travis encrypt BII_PASSWORD=XXXXXX --add
+  - secure: K4oI72CcIcUBo3cb7DfhPoWSOEZxNzx8JOLpkZ/xOy3vFvXatvDP1KEpDvpirIGkueBuzhzMXXWE1wsefsbimh1PWSE5iyyF52aoWGuhKsjXt0/q80G2uwA/lcJIRJhJCH0m7QAsG8j054x06A+CJUHOsYCNKK3XUzE5ice+Dsc=
+  # GH_TOKEN: Github token > travis encrypt GH_TOKEN=XXXXXX --add
+  - secure: gNKs9E4Fh2agwqaGFTl1uzLvT+PrhykIi57eo9IkAlBuae/jOjAqxGua7NM7Rg+FxjLYh+wecPpO9DXsyNmeBjKpRN3AUmL6qTUgnVndxaRGV4avYpvnVymy6btqoyyBO3lm+wXgaKPtyp9NxjYhXbiQXnMC77yZOLC2k8BCRgk=

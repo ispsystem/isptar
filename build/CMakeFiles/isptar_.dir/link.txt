@@ -1,1 +1,0 @@
-/usr/bin/c++   -std=c++0x    CMakeFiles/isptar_.dir/isptar.cpp.o CMakeFiles/isptar_.dir/isptar_args.cpp.o CMakeFiles/isptar_.dir/isptar_file.cpp.o CMakeFiles/isptar_.dir/isptar_gzip.cpp.o CMakeFiles/isptar_.dir/isptar_io.cpp.o CMakeFiles/isptar_.dir/isptar_misc.cpp.o CMakeFiles/isptar_.dir/isptar_slice.cpp.o CMakeFiles/isptar_.dir/isptar_tar.cpp.o  -o isptar_ -rdynamic -lz 

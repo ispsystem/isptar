@@ -1,59 +1,50 @@
-dist:     trusty    # используем Ubuntu 14.04 Trusty Tahr (а не 12.02 Precise Pangolin)
-sudo:     required  # используем Virtual Machine (а не Docker container)
-
-language: cpp       # на практике разницы между специфичным для C++ окружением
-                    # и, скажем, python -- никакой. Но пусть будет cpp.
-
-os:
-    # будем прогонять CI и на Linux, и на Mac OS X...
-    - linux
-    - osx
-
-compiler:
-    # ... и с помощью GCC, и Clang
-    - gcc
-    - clang
-
-env:
-    # список переменных окружения, влияющих на матрицу сборки:
-    - TARGET_CPU=amd64 BUILD_CONFIGURATION=Debug
-    - TARGET_CPU=amd64 BUILD_CONFIGURATION=Release
-    - TARGET_CPU=x86 BUILD_CONFIGURATION=Debug
-    - TARGET_CPU=x86 BUILD_CONFIGURATION=Release
-
-matrix:
-    exclude:
-        # вручную исключим ненужные элементы из матрицы сборки:
-        - os:       osx
-          compiler: gcc
-
-        - os:  osx
-          env: TARGET_CPU=x86 BUILD_CONFIGURATION=Debug
-
-        - os:  osx
-          env: TARGET_CPU=x86 BUILD_CONFIGURATION=Release
-
-install:
-    # скрипт настройки среды и установки зависимостей:
-    - source ci/travis/install-$TRAVIS_OS_NAME.sh
-
-script:
-    # скрипт сборки и тестирования проекта:
-    - mkdir build
-    - cd build
-    - cmake .. -DCMAKE_BUILD_TYPE=$BUILD_CONFIGURATION -DTARGET_CPU=$TARGET_CPU
-    - cmake --build .
-    - ctest --output-on-failure
-
-deploy:
-    # выкладываем tagged-коммиты на GitHub Releases:
-    provider:     releases
-    file:         <package-file>
-    skip_cleanup: true
-    overwrite:    true
-
-    api_key:
-        secure:   <encrypted-github-token>
-
-    on:
-        tags:     true
+dist: trusty
+language: cppinstall:
+   - sh .travis/install.shscript:
+   - sh .travis/run.shenv:
+   - BUILD_TYPE=Release COMPILER=g++-4.9
+   - BUILD_TYPE=Release COMPILER=g++-5
+   - BUILD_TYPE=Release COMPILER=g++-6
+   - BUILD_TYPE=Release COMPILER=clang++-3.9
+   - BUILD_TYPE=Release COMPILER=clang++-4.0
+   - BUILD_TYPE=Debug COMPILER=g++-4.9
+   - BUILD_TYPE=Debug COMPILER=g++-5
+   - BUILD_TYPE=Debug COMPILER=g++-6
+   - BUILD_TYPE=Debug COMPILER=clang++-3.9
+   - BUILD_TYPE=Debug COMPILER=clang++-4.0addons:
+   apt:
+       sources:
+       - ubuntu-toolchain-r-test
+       - llvm-toolchain-trusty-3.9
+       - llvm-toolchain-trusty-4.0
+       packages:
+       - g++-6
+       - g++-4.9
+       - g++-5
+       - clang-3.9
+       - clang-4.0matrix:
+ include:
+   - os: osx
+     osx_image: xcode6.4
+     env: BUILD_TYPE=Debug
+   - os: osx
+     osx_image: xcode7.3
+     env: BUILD_TYPE=Debug
+   - os: osx
+     osx_image: xcode8
+     env: BUILD_TYPE=Debug
+   - os: osx
+     osx_image: xcode8.2
+     env: BUILD_TYPE=Debug
+   - os: osx
+     osx_image: xcode6.4
+     env: BUILD_TYPE=Release
+   - os: osx
+     osx_image: xcode7.3
+     env: BUILD_TYPE=Release
+   - os: osx
+     osx_image: xcode8
+     env: BUILD_TYPE=Release
+   - os: osx
+     osx_image: xcode8.2
+     env: BUILD_TYPE=Release

@@ -29,3 +29,7 @@ set (SOURCES
  
 add_executable (${PROJECT} ${HEADERS} ${SOURCES})
 target_link_libraries(${PROJECT} -lz)
+
+enable_testing()
+add_test(NAME test_run
+COMMAND py.test ${CMAKE_SOURCE_DIR}/test_run.py)
